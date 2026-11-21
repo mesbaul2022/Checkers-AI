@@ -3,85 +3,371 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Play Checkers by Mesba and Safiul.">
-  <title>Checkers | Mesba &amp; Safiul</title>
-  <link rel="stylesheet" href="style.css">
+  <meta name="description" content="Classic Checkers strategy game with Minimax and MCTS AI engines.">
+  <title>Checkers | Classic Strategy Board Game</title>
+  <link rel="stylesheet" href="style.css?v=2.0">
 </head>
 <body>
   <main class="app-shell">
+    <!-- Screen 1: Welcome Screen -->
     <section id="welcome-screen" class="screen welcome-screen">
       <div class="welcome-card">
-        <div class="brand-mark" aria-hidden="true">♟</div>
-        <p class="eyebrow">A classic strategy game</p>
-        <h1>Checkers</h1>
-        <p class="welcome-copy">Plan your jumps, crown your pieces, and outplay your opponent.</p>
-        <button id="lets-play-button" class="primary-button" type="button">Let's Play <span aria-hidden="true">→</span></button>
+        <div class="brand-mark" aria-hidden="true">
+          <span class="brand-piece">♟</span>
+        </div>
+        <p class="eyebrow">A Classic Strategy Game</p>
+        <h1 class="game-logo">Checkers</h1>
+        <p class="welcome-copy">Plan your jumps, crown your pieces, and challenge heuristic search algorithms.</p>
+        <button id="lets-play-button" class="primary-button" type="button">
+          <span>Let's Play</span>
+          <span class="btn-arrow" aria-hidden="true">→</span>
+        </button>
       </div>
-      <footer class="site-footer">Created with care by <strong>Mesba &amp; Safiul</strong></footer>
     </section>
 
+    <!-- Screen 2: Mode Screen -->
     <section id="mode-screen" class="screen mode-screen is-hidden" aria-labelledby="mode-title">
-      <div class="mode-card">
-        <button id="back-to-welcome" class="back-button" type="button">← Back</button>
-        <p class="eyebrow">Choose your challenge</p>
-        <h2 id="mode-title">How do you want to play?</h2>
+      <div class="mode-container">
+        <div class="mode-top-bar">
+          <button id="back-to-welcome" class="nav-back-button" type="button">
+            <span class="nav-arrow" aria-hidden="true">←</span>
+            <span>Welcome</span>
+          </button>
+        </div>
+
+        <div class="mode-header">
+          <span class="badge-eyebrow">GAME SETUP</span>
+          <h2 id="mode-title" class="screen-heading">Choose Game Mode</h2>
+          <p class="screen-subheading">Select your match format and configure the AI search engine.</p>
+        </div>
+
         <div class="mode-grid">
           <button class="mode-option" data-mode="human-human" type="button">
-            <span class="mode-icon" aria-hidden="true">♟ ♟</span>
-            <span class="mode-name">Human vs Human</span>
-            <span class="mode-description">Challenge someone beside you.</span>
+            <div class="mode-icon-wrap" aria-hidden="true">
+              <span class="mode-icon-pieces">♟ ♟</span>
+            </div>
+            <div class="mode-details">
+              <div class="mode-title-row">
+                <span class="mode-name">Human vs Human</span>
+                <span class="mode-badge">2 Players</span>
+              </div>
+              <p class="mode-description">Play head-to-head locally with alternating turns on the same screen.</p>
+            </div>
+            <span class="mode-arrow" aria-hidden="true">→</span>
           </button>
+
           <button class="mode-option" data-mode="human-ai" type="button">
-            <span class="mode-icon" aria-hidden="true">♟ ✦</span>
-            <span class="mode-name">Human vs AI</span>
-            <span class="mode-description">Play as white against the computer.</span>
+            <div class="mode-icon-wrap" aria-hidden="true">
+              <span class="mode-icon-pieces">♟ ✦</span>
+            </div>
+            <div class="mode-details">
+              <div class="mode-title-row">
+                <span class="mode-name">Human vs AI</span>
+                <span class="mode-badge highlight">Solo vs AI</span>
+              </div>
+              <p class="mode-description">Command the White pieces against your chosen AI algorithm opponent.</p>
+            </div>
+            <span class="mode-arrow" aria-hidden="true">→</span>
           </button>
+
           <button class="mode-option" data-mode="ai-ai" type="button">
-            <span class="mode-icon" aria-hidden="true">✦ ✦</span>
-            <span class="mode-name">AI vs AI</span>
-            <span class="mode-description">Watch two computer players compete.</span>
+            <div class="mode-icon-wrap" aria-hidden="true">
+              <span class="mode-icon-pieces">✦ ✦</span>
+            </div>
+            <div class="mode-details">
+              <div class="mode-title-row">
+                <span class="mode-name">AI vs AI</span>
+                <span class="mode-badge spectator">Spectator</span>
+              </div>
+              <p class="mode-description">Watch autonomous search algorithms compete in a high-speed match.</p>
+            </div>
+            <span class="mode-arrow" aria-hidden="true">→</span>
           </button>
+        </div>
+
+        <!-- Match Time Limit Card on Mode Screen -->
+        <div class="mode-time-card" id="mode-time-config">
+          <div class="algo-card-title-bar">
+            <div class="algo-title-left">
+              <span class="algo-title-icon" aria-hidden="true">⏱</span>
+              <span class="algo-card-title">Match Time Limit (Optional)</span>
+            </div>
+            <span class="algo-config-pill" id="time-limit-indicator-pill">No Limit</span>
+          </div>
+
+          <div class="algo-config-section">
+            <div class="algo-config-label-row">
+              <span class="algo-field-name">Countdown Timer:</span>
+              <span class="algo-field-hint">When time finishes, winner is decided by piece advantage</span>
+            </div>
+            <div class="time-limit-grid" id="mode-time-picker">
+              <button type="button" class="time-option-btn algo-toggle-btn active" data-time="0" onclick="selectTimeLimit(0)">
+                <span class="time-btn-main">No Limit</span>
+                <span class="time-btn-sub">Untimed</span>
+              </button>
+              <button type="button" class="time-option-btn algo-toggle-btn" data-time="60" onclick="selectTimeLimit(60)">
+                <span class="time-btn-main">1 Min</span>
+                <span class="time-btn-sub">Blitz</span>
+              </button>
+              <button type="button" class="time-option-btn algo-toggle-btn" data-time="120" onclick="selectTimeLimit(120)">
+                <span class="time-btn-main">2 Min</span>
+                <span class="time-btn-sub">Speed</span>
+              </button>
+              <button type="button" class="time-option-btn algo-toggle-btn" data-time="180" onclick="selectTimeLimit(180)">
+                <span class="time-btn-main">3 Min</span>
+                <span class="time-btn-sub">Rapid</span>
+              </button>
+              <button type="button" class="time-option-btn algo-toggle-btn" data-time="300" onclick="selectTimeLimit(300)">
+                <span class="time-btn-main">5 Min</span>
+                <span class="time-btn-sub">Standard</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- AI Engine Configuration Card on Mode Screen -->
+        <div class="mode-algo-card" id="mode-algo-config">
+          <div class="algo-card-title-bar">
+            <div class="algo-title-left">
+              <span class="algo-title-icon" aria-hidden="true">⚙</span>
+              <span class="algo-card-title">AI Engine Configuration</span>
+            </div>
+            <span class="algo-config-pill">Active for AI Modes</span>
+          </div>
+
+          <div class="algo-config-section">
+            <div class="algo-config-label-row">
+              <span class="algo-field-name">Human vs AI Opponent Engine:</span>
+              <span class="algo-field-hint">Choose computer player's strategy</span>
+            </div>
+            <div class="segmented-control" id="mode-human-ai-picker">
+              <button type="button" class="algo-toggle-btn active" data-mode-target="human-ai" data-algo="minimax">
+                <span class="algo-btn-main">Minimax</span>
+                <span class="algo-btn-sub">Alpha-Beta Pruning</span>
+              </button>
+              <button type="button" class="algo-toggle-btn" data-mode-target="human-ai" data-algo="mcts">
+                <span class="algo-btn-main">MCTS</span>
+                <span class="algo-btn-sub">Monte Carlo Tree Search</span>
+              </button>
+            </div>
+          </div>
+
+          <div class="algo-config-section">
+            <div class="algo-config-label-row">
+              <span class="algo-field-name">AI vs AI Matchup Strategy:</span>
+              <span class="algo-field-hint">Presets for spectator duels</span>
+            </div>
+            <div class="matchup-grid" id="mode-ai-vs-ai-picker">
+              <button type="button" class="algo-toggle-btn active" data-matchup="minimax-mcts">
+                <span class="matchup-vs">White: Minimax vs Black: MCTS</span>
+              </button>
+              <button type="button" class="algo-toggle-btn" data-matchup="mcts-minimax">
+                <span class="matchup-vs">White: MCTS vs Black: Minimax</span>
+              </button>
+              <button type="button" class="algo-toggle-btn" data-matchup="minimax-minimax">
+                <span class="matchup-vs">Minimax vs Minimax</span>
+              </button>
+              <button type="button" class="algo-toggle-btn" data-matchup="mcts-mcts">
+                <span class="matchup-vs">MCTS vs MCTS</span>
+              </button>
+            </div>
+          </div>
         </div>
       </div>
-      <footer class="site-footer">Created with care by <strong>Mesba &amp; Safiul</strong></footer>
     </section>
 
+    <!-- Screen 3: Gameplay Screen -->
     <section id="game-screen" class="screen game-screen is-hidden" aria-labelledby="game-title">
       <header class="game-header">
-        <div>
-          <p class="eyebrow">Mesba &amp; Safiul present</p>
-          <h2 id="game-title">Checkers</h2>
+        <div class="header-left">
+          <button id="back-to-mode-button" class="nav-button nav-back" type="button" title="Return to mode selection">
+            <span class="nav-icon" aria-hidden="true">←</span>
+            <span>Modes</span>
+          </button>
+          <div class="header-divider" aria-hidden="true"></div>
+          <div class="game-title-group">
+            <h2 id="game-title">Checkers</h2>
+            <span id="header-mode-badge" class="header-mode-badge">Human vs AI</span>
+          </div>
         </div>
-        <button id="new-game-button" class="outline-button" type="button">New game</button>
+
+        <div class="header-center">
+          <div class="live-timer-badge is-hidden" id="live-timer-header" title="Match countdown timer">
+            <span class="timer-icon" aria-hidden="true">⏱</span>
+            <span class="timer-digits" id="timer-display-header">--:--</span>
+          </div>
+        </div>
+
+        <div class="header-right">
+          <button id="new-game-button" class="action-button action-restart" type="button">
+            <span class="action-icon" aria-hidden="true">↻</span>
+            <span>New Game</span>
+          </button>
+        </div>
       </header>
 
       <div class="game-layout">
+        <!-- Tournament Board Frame -->
         <div class="board-wrap">
           <div id="board" class="board" role="grid" aria-label="Checkers board"></div>
         </div>
+
+        <!-- Sidebar Game Panel -->
         <aside class="game-panel">
-          <div class="status-card">
-            <span class="status-label">Current turn</span>
-            <div class="turn-line">
-              <span id="turn-piece" class="mini-piece white-piece" aria-hidden="true"></span>
-              <strong id="turn-text">White's turn</strong>
+          <!-- Card 1: Score & Turn Hub -->
+          <div class="match-hub-card">
+            <div class="players-row">
+              <div class="player-box is-active-turn" id="white-player-box">
+                <div class="player-avatar-wrap">
+                  <i class="mini-piece white-piece" aria-hidden="true"></i>
+                  <span class="player-turn-dot" id="white-turn-dot" aria-hidden="true"></span>
+                </div>
+                <div class="player-info">
+                  <span class="player-name">White</span>
+                  <span class="player-sub" id="white-role">Human</span>
+                </div>
+                <div class="player-score" id="white-count">12</div>
+              </div>
+
+              <div class="match-vs-divider">
+                <span class="vs-text">VS</span>
+              </div>
+
+              <div class="player-box" id="black-player-box">
+                <div class="player-avatar-wrap">
+                  <i class="mini-piece black-piece" aria-hidden="true"></i>
+                  <span class="player-turn-dot" id="black-turn-dot" aria-hidden="true"></span>
+                </div>
+                <div class="player-info">
+                  <span class="player-name">Black</span>
+                  <span class="player-sub" id="black-role">AI: Minimax</span>
+                </div>
+                <div class="player-score" id="black-count">12</div>
+              </div>
             </div>
-            <p id="status-message" class="status-message">Select a piece to begin.</p>
+
+            <!-- Live Time Remaining Bar in Match Hub -->
+            <div class="timer-panel-bar is-hidden" id="timer-panel-bar">
+              <div class="timer-label-wrap">
+                <span class="timer-pulse-dot" aria-hidden="true"></span>
+                <span class="timer-bar-title">Match Time Remaining:</span>
+              </div>
+              <strong class="timer-bar-digits" id="timer-display-panel">03:00</strong>
+            </div>
+
+            <div class="turn-status-banner">
+              <div class="turn-header-line">
+                <span id="turn-piece" class="mini-piece white-piece" aria-hidden="true"></span>
+                <strong id="turn-text">White's turn</strong>
+              </div>
+              <p id="status-message" class="status-message">Select a piece to begin.</p>
+            </div>
           </div>
-          <div class="score-card">
-            <div class="score-row"><span><i class="mini-piece white-piece" aria-hidden="true"></i> White</span><strong id="white-count">12</strong></div>
-            <div class="score-row"><span><i class="mini-piece black-piece" aria-hidden="true"></i> Black</span><strong id="black-count">12</strong></div>
+
+          <!-- Card 2: Active Algorithm Hub -->
+          <div class="algo-hub-card" id="ai-card">
+            <div class="algo-hub-header">
+              <span class="panel-eyebrow">ACTIVE ALGORITHM</span>
+              <span id="active-algo-badge" class="algo-badge algo-badge-minimax">Minimax</span>
+            </div>
+
+            <div class="algo-live-status">
+              <span class="status-indicator-dot" id="status-indicator-dot" aria-hidden="true"></span>
+              <span id="active-algo-desc" class="active-algo-desc">Playing with Minimax (Alpha-Beta)</span>
+            </div>
+
+            <!-- Dynamic In-Game Algorithm Controls -->
+            <div class="algo-controls-container" id="ai-controls-panel">
+              <!-- Human vs AI toggle -->
+              <div id="ctrl-human-ai" class="engine-switch-block">
+                <span class="engine-block-title">Opponent AI Engine:</span>
+                <div class="segmented-pill-group" role="group" aria-label="Opponent AI algorithm">
+                  <button type="button" class="algo-toggle-btn in-game-toggle active" data-color="B" data-algo="minimax" title="Minimax with Alpha-Beta Pruning">Minimax</button>
+                  <button type="button" class="algo-toggle-btn in-game-toggle" data-color="B" data-algo="mcts" title="Monte Carlo Tree Search">MCTS</button>
+                </div>
+              </div>
+
+              <!-- AI vs AI dual toggles -->
+              <div id="ctrl-ai-ai" class="engine-switch-block is-hidden">
+                <div class="dual-engine-rows">
+                  <div class="engine-sub-row">
+                    <span class="engine-sub-label"><i class="mini-piece white-piece"></i> White:</span>
+                    <div class="segmented-pill-group mini" role="group" aria-label="White AI algorithm">
+                      <button type="button" class="algo-toggle-btn in-game-toggle active" data-color="W" data-algo="minimax">Minimax</button>
+                      <button type="button" class="algo-toggle-btn in-game-toggle" data-color="W" data-algo="mcts">MCTS</button>
+                    </div>
+                  </div>
+                  <div class="engine-sub-row">
+                    <span class="engine-sub-label"><i class="mini-piece black-piece"></i> Black:</span>
+                    <div class="segmented-pill-group mini" role="group" aria-label="Black AI algorithm">
+                      <button type="button" class="algo-toggle-btn in-game-toggle" data-color="B" data-algo="minimax">Minimax</button>
+                      <button type="button" class="algo-toggle-btn in-game-toggle active" data-color="B" data-algo="mcts">MCTS</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Human vs Human note -->
+              <div id="ctrl-human-human" class="engine-switch-block is-hidden">
+                <p class="manual-play-note">Local 2-Player Match — Manual controls on both sides.</p>
+              </div>
+            </div>
           </div>
-          <div class="rules-card">
-            <h3>How to play</h3>
-            <p>Move diagonally and capture by jumping. Captures are mandatory. Reach the opposite end to crown a king.</p>
+
+          <!-- Card 3: Rules & Summary Hub -->
+          <div class="rules-hub-card">
+            <h3>How to Play</h3>
+            <div class="rules-pills">
+              <span class="rule-pill">Diagonal Steps</span>
+              <span class="rule-pill">Mandatory Jumps</span>
+              <span class="rule-pill">King Crowning</span>
+            </div>
+            <p>Move diagonally forward. Captures by jumping are mandatory. Reach the opposite end to crown a king that moves in all directions.</p>
           </div>
-          <p id="mode-label" class="mode-label">Human vs Human</p>
+
+          <div class="mode-footer-badge">
+            <span id="mode-label" class="mode-footer-label">Human vs AI</span>
+            <span class="mode-footer-bullet">•</span>
+            <span id="mode-algo-summary" class="mode-footer-sub">AI: Minimax (Alpha-Beta)</span>
+          </div>
         </aside>
       </div>
-      <footer class="game-footer">Created with care by <strong>Mesba &amp; Safiul</strong></footer>
     </section>
   </main>
-  <script src="script.js"></script>
+  <script>
+    window.pregameSettings = window.pregameSettings || {
+      humanAi: "minimax",
+      aiVsAiWhite: "minimax",
+      aiVsAiBlack: "mcts",
+      timeLimit: 0,
+    };
+
+    function selectTimeLimit(seconds) {
+      seconds = parseInt(seconds, 10);
+      if (isNaN(seconds)) seconds = 0;
+      if (window.pregameSettings) {
+        window.pregameSettings.timeLimit = seconds;
+      }
+      var buttons = document.querySelectorAll("#mode-time-picker button");
+      buttons.forEach(function (btn) {
+        var btnTime = parseInt(btn.getAttribute("data-time"), 10);
+        if (btnTime === seconds) {
+          btn.classList.add("active");
+        } else {
+          btn.classList.remove("active");
+        }
+      });
+      var pill = document.getElementById("time-limit-indicator-pill");
+      if (pill) {
+        if (seconds === 0) {
+          pill.textContent = "No Limit";
+        } else {
+          pill.textContent = Math.floor(seconds / 60) + " Min Limit";
+        }
+      }
+    }
+    window.selectTimeLimit = selectTimeLimit;
+  </script>
+  <script src="script.js?v=2.0"></script>
 </body>
 </html>

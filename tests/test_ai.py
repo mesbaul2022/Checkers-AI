@@ -31,3 +31,17 @@ def test_white_ai_returns_a_white_move():
 
     assert move["position_from"] == "9"
     assert move["position_to"] in ["12", "13"]
+
+def test_mcts_move():
+    test_ai = AI('B', algorithm='mcts')
+    test_board = Board([Piece('9WN'), Piece('17BN'), Piece('21BN')], 'B')
+    move = test_ai.get_move(test_board)
+
+    assert move["position_from"] in ["17", "21"]
+    assert move["position_to"] in ["13", "14", "18"]
+
+def test_ai_algorithm_name():
+    ai_minimax = AI('B', 'minimax')
+    ai_mcts = AI('B', 'mcts')
+    assert ai_minimax.get_algorithm_name() == "Minimax (Alpha-Beta)"
+    assert ai_mcts.get_algorithm_name() == "MCTS"

@@ -6,7 +6,7 @@ from ai import AI
 from utils import get_surface_mouse_offset, get_piece_position
 
 class GameControl:
-    def __init__(self, player_color, is_computer_opponent, is_ai_vs_ai=False):
+    def __init__(self, player_color, is_computer_opponent, is_ai_vs_ai=False, ai_algorithm="minimax", white_ai_algorithm="minimax", black_ai_algorithm="mcts"):
         self.turn = player_color
         self.winner = None
         self.board = None
@@ -15,11 +15,13 @@ class GameControl:
         self.ai_control = None
         self.ai_controls = {}
         self.is_ai_vs_ai = is_ai_vs_ai
+        self.is_computer_opponent = is_computer_opponent
 
         if is_ai_vs_ai:
-            self.ai_controls = {"W": AI("W"), "B": AI("B")}
+            self.ai_controls = {"W": AI("W", white_ai_algorithm), "B": AI("B", black_ai_algorithm)}
         elif is_computer_opponent:
-            self.ai_control = AI("B") if player_color == "W" else AI("W")
+            opp_color = "B" if player_color == "W" else "W"
+            self.ai_control = AI(opp_color, ai_algorithm)
 
         self.setup()
 
@@ -28,6 +30,25 @@ class GameControl:
 
     def get_winner(self):
         return self.winner
+
+    def get_current_algorithm_name(self):
+        if self.is_ai_vs_ai:
+            ai = self.ai_controls.get(self.turn)
+            return ai.get_algorithm_name() if ai else "Minimax"
+        elif self.is_computer_opponent:
+            if self.turn != "W":
+                return self.ai_control.get_algorithm_name() if self.ai_control else "Minimax"
+            return "Human"
+        return "Manual"
+
+    def get_matchup_description(self):
+        if self.is_ai_vs_ai:
+            w_algo = self.ai_controls["W"].algorithm.upper()
+            b_algo = self.ai_controls["B"].algorithm.upper()
+            return f"W: {w_algo} vs B: {b_algo}"
+        elif self.is_computer_opponent:
+            return f"AI: {self.ai_control.algorithm.upper()}"
+        return "Human vs Human"
 
     def setup(self):
         # Initial setup
